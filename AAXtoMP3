@@ -16,7 +16,7 @@ level=-1                    # Compression level. Can be given for mp3, flac and 
 mode=chaptered              # Multi file output
 auth_code=                  # Required to be set via file or option.
 targetdir=                  # Optional output location.  Note default is basedir of AAX file.
-dirNameScheme=              # Custom directory naming scheme, default is $genre/$author/$title
+dirNameScheme=              # Custom directory naming scheme, default is $genre/$artist/$title
 customDNS=0
 fileNameScheme=             # Custom file naming scheme, default is $title
 customFNS=0
@@ -789,7 +789,7 @@ do
     # -----
   fi
   # Grab the cover art if available.
-  cover_file="${output_directory}/cover.jpg"
+  cover_file="${output_directory}/${currentFileNameScheme}.jpg"
   if [ "${continue}" == "0" ]; then
     if [ "${audibleCli}" == "1" ]; then
       # We have a better quality cover file, copy it.
@@ -807,7 +807,7 @@ do
   fi
 
   extra_crop_cover=''
-  cover_width=$(ffprobe -i "${cover_file}" 2>&1 | $GREP -Po "[0-9]+(?=x[0-9]+)")
+  cover_width=$(ffprobe -i "${cover_file}" 2>&1 | $GREP -Po "[0-9]+(?=x[0-9]+)" | tail -n 1)
   if (( ${cover_width} % 2 == 1 )); then
     if [ "$((${loglevel} > 1))" == "1" ]; then
       log "Cover ${cover_file} has odd width ${cover_width}, setting extra_crop_cover to make even."
