@@ -300,5 +300,5 @@ class MyApp(Gtk.Application):
         self.win = MainWindow(application=app)
         self.win.present()
 
-app = MyApp(application_id="com.example.GtkApplication")
+app = MyApp(application_id="AAXtoMP3.GUI")
 app.run(sys.argv)
