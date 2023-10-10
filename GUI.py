@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import os
 import subprocess
@@ -14,7 +16,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.load()
         self.set_default_size(600, 250)
         self.set_title("AAXtoMP3")
-        
+
         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.box.set_margin_top(5)
         self.box.set_margin_bottom(5)
@@ -22,7 +24,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.box.set_margin_end(5)
         self.box.set_spacing(5)
         self.set_child(self.box)
-        
+
         # Row 1: AAX File Path #################################################
         # File: ______________________________________________________________ #
         self.row1 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -38,7 +40,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.file_textbox.connect("activate", self.path_chosen)
         self.row1.append(self.file_textbox)
         self.file_textbox.set_hexpand(True)
-        
+
         # Row 2: Format & Compression Level ####################################
         # Format: mp3 v                               Compression level: 0 -|+ #
         # Format: mp4 v                                                        #
@@ -64,7 +66,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.row2.append(self.clevel_box)
         # Fill compression level space holder if the format supports it
         self.format_chosen(self.format_dropdown, [])
-        
+
         # Row 3: Chaptered & Continue ##########################################
         # Chaptered: (() )                                                     #
         # Chaptered: ( ())                                     Continue: (() ) #
@@ -91,7 +93,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.row3.append(self.cont_box)
         # Fill continue space holder if chaptered is set True
         self.chap_switched(self.chap_switch, self.chap_switch.get_state())
-        
+
         # Row 4: Authcode ######################################################
         # Authcode: __________________                                         #
         self.row4 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -104,13 +106,13 @@ class MainWindow(Gtk.ApplicationWindow):
         self.auth_textbox.set_placeholder_text("Enter your authentication code here.")
         self.auth_textbox.set_buffer(Gtk.EntryBuffer.new(self.authcode,len(self.authcode)))
         self.row4.append(self.auth_textbox)
-        
+
         # Space ################################################################
         #                                                                      #
         self.space_holder3 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.space_holder3.set_vexpand(True)
         self.box.append(self.space_holder3)
-        
+
         # Row 5: Save & Run ####################################################
         # <=========================================================> Save Run #
         self.row5 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -129,7 +131,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.run_button = Gtk.Button(label="Run")
         self.run_button.connect('clicked', self.run)
         self.row5.append(self.run_button)
-    
+
     # Update compression level area ############################################
     def format_chosen(self,dropdown, data):
         # Remove outdated compression level box
@@ -159,7 +161,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.clevel_box.append(self.clevel_spinbutton)
         # Insert new compression level box
         self.row2.append(self.clevel_box)
-    
+
     # Update continue area #####################################################
     def chap_switched(self, switch, state):
         # Remove outdated continue box
@@ -182,7 +184,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.cont_switched(self.cont_switch, self.cont_switch.get_state())
         # Insert new continue box
         self.row3.append(self.cont_box)
-    
+
     # Uptade continue spin button area #########################################
     def cont_switched(self, switch, state):
         # Remove outdated continue spin button box
@@ -195,7 +197,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.cont_spin_box.append(self.cont_spinbutton)
         # Insert new continue spin button box
         self.cont_box.append(self.cont_spin_box)
-        
+
     def path_chosen(self, entry):
         path = entry.get_buffer().get_text()
         if path[-1] == "\n":
@@ -205,7 +207,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if path[:7] == "file://":
           path = path[7:]
         entry.set_buffer(Gtk.EntryBuffer.new(path,len(path)))
-    
+
     # Load .authcode and .settings #############################################
     def load(self):
         # Load settings
@@ -223,7 +225,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 self.authcode = file.read()[:-1]
         else:
             self.authcode = ""
-    
+
     # Save .settings ###########################################################
     def save(self,button):
         self.path_chosen(self.file_textbox)
@@ -239,30 +241,30 @@ class MainWindow(Gtk.ApplicationWindow):
         with open(".settings", "w") as file:
             json.dump(self.settings, file, indent=4)
         self.load()
-    
+
     def update_progress(self, fraction):
         self.progress_bar.set_fraction(fraction)
-        
+
     def run_subprocess(self, call):
         self.process = subprocess.Popen(call,stdout=subprocess.PIPE, text=True)
-        
+
         while self.process.poll() is None:
             output = self.process.stdout.readline()
-            
+
             if output.startswith("Total length: "):
                 length = output[14:22]
                 length_s = int(length[:2])*3600+int(length[3:5])*60+int(length[6:8])
-                
+
             if output.startswith("size="):
                 for i in range(len(output)-5):
                     if output[i:i+5] == "time=":
                         progress = output[i+5:i+13]
                         progress_s = int(progress[:2])*3600+int(progress[3:5])*60+int(progress[6:8])
                         GLib.idle_add(self.update_progress,progress_s/length_s)
-                        
+
             if output[:18]=="Chapter splitting:":
                 GLib.idle_add(self.update_progress,int(output[42:45])/100)
-    
+
     # Run AAXtoMP3 #############################################################
     def run(self,button):
         self.path_chosen(self.file_textbox)
@@ -281,10 +283,10 @@ class MainWindow(Gtk.ApplicationWindow):
         call.append("-A")
         call.append(self.auth_textbox.get_buffer().get_text())
         call.append(self.file_textbox.get_buffer().get_text())
-        
+
         thread = threading.Thread(target=self.run_subprocess, args=(call,))
         thread.start()
-        
+
     def __del__(self):
         try:
           self.process.terminate()
