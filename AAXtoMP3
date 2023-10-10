@@ -782,7 +782,7 @@ do
       -metadata series="${series}" \
       -metadata series_sequence="${series_sequence}" \
       -f ${container} \
-      "${output_file}"
+      "${output_file}" 2>&1
     if [ "$((${loglevel} > 0))" == "1" ]; then
       log "Created ${output_file}."
     fi
